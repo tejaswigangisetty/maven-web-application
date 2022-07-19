@@ -38,7 +38,7 @@ sh "scp -o StrictHostKeyChecking=no maven-web-application.war ec2-user@43.204.96
 }
 }
 */
-
+}
 }
 def notifySlack(StringbuildStatus = 'STARTED')
  {
