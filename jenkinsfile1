@@ -1,6 +1,8 @@
 node
 {
 def mavenHome = tool name: "maven-3.8.6"
+try
+{
 stage('checkout code')
 {
 git credentialsId: '93159d0f-4d23-4419-afb5-15891cd2de92', url: 'https://github.com/tejaswigangisetty/maven-web-application.git'
@@ -17,6 +19,15 @@ stage('nexus backup')
 {
 sh "${mavenHome}/bin/mvn clean package deploy"
 }
+}
+catch (e)
+{
+currentBuild.result= "FAILED"
+throw e
+}
+finally
+{
+notifyBuild(currentBuild.result)
 /*
 Stage('deploy app into tomcat server')
 {
@@ -29,3 +40,28 @@ sh "scp -o StrictHostKeyChecking=no maven-web-application.war ec2-user@43.204.96
 */
 
 }
+def notifySlack(StringbuildStatus = 'STARTED')
+ {
+    // Build status of null means success.
+buildStatus = buildStatus ?: 'SUCCESS'
+def color
+if(buildStatus == 'STARTED') 
+{
+        color = '#D4DADF'
+} 
+elseif(buildStatus == 'SUCCESS') 
+{
+        color = '#BDFFC3'
+} 
+elseif(buildStatus == 'UNSTABLE') 
+{
+        color = '#FFFE89'
+} 
+else
+{
+        color = '#FF9FA1'
+}
+def msg = "${buildStatus}: `${env.JOB_NAME}` #${env.BUILD_NUMBER}:\n${env.BUILD_URL}"
+slackSend(color: color, message: msg)
+}
+
